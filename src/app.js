@@ -7,6 +7,7 @@ var cors = require('cors');
 
 // ? Routes...
 const indexRoute = require('./routes/index')
+const AuthRoute = require('./routes/Auth/authRoute')
 
 class App {
 
@@ -41,6 +42,7 @@ class App {
   api() {
     // ? setup APIs...
     new indexRoute(this.router)
+    new AuthRoute(this.router)
 
     // use router as middleware
     this.app.use('/api', this.router)

@@ -1,9 +1,9 @@
 const { response } = require("express");
 
 class indexController {
-    getHomePage(req, res) {
-        res.send("This is Home Page")
-    }
+  checkHost(req, res) {
+    res.send("Host is working");
+  }
 }
 
-module.exports = indexController
+module.exports = indexController;

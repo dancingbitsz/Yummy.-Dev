@@ -1,15 +1,14 @@
-const indexController = require("../controllers/indexController") 
+const indexController = require("../controllers/indexController");
 
 class indexRoute extends indexController {
   constructor(router) {
-    super()
-    this.route(router)
+    super();
+    this.route(router);
   }
 
   route(router) {
-    router.get("/index" , this.getHomePage)
+    router.get("/ ", this.checkHost);
   }
-
 }
 
 module.exports = indexRoute;

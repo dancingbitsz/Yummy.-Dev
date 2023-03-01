@@ -1,4 +1,4 @@
-const { Sequelize } = require('Sequelize')
+const { Sequelize } = require('sequelize')
 var path = require('path')
 
 var sql = {
@@ -16,26 +16,25 @@ console.log("Local DB Server Structure Model")
 sqlReader = {
     ...sql,
     host: process.env.DB_HOST_READER,
-    timezone: '+05.00'
+    timezone: '+05:00'
 }
 
-sqlReader = {
+sqlWriter = {
     ...sql,
     host: process.env.DB_HOST_WRITER,
-    timezone: '+05.00'
+    timezone: '+05:00'
 }
 
 // Conection
 var [dbReader, dbWriter] = [{
-    Sequelize: new Sequelize(
+    sequelize: new Sequelize(
         sql.database,
         sql.username,
         sql.password,
         sqlReader
     )
-},
-{
-    Sequelize: new Sequelize(
+},{
+    sequelize: new Sequelize(
         sql.database,
         sql.username,
         sql.password,
@@ -50,18 +49,19 @@ var DbInstance = [{
 }]
 
 DbInstance.forEach(element => {
+    // console.log(element);
     // Models Map
-    element.name['users'] = require(path.join(__dirname , '/userModel'))(element.name['sequlize'] , Sequelize)
+    element.name['users'] = require(path.join(__dirname, './usersModel'))(element.name['sequelize'], Sequelize);
 
     // Model Association
-    Object.keys(element.model).forEach(function (modelName) {
-      if ('associate' in element.name[modelName]) {
-        element.name[modelName].associate(element.name)
-      }  
+    Object.keys(element.name).forEach(function (modelName) {
+        if ('associate' in element.name[modelName]) {
+            element.name[modelName].associate(element.name)
+        }
     })
 })
 
 dbReader.Sequelize = Sequelize
 dbWriter.Sequelize = Sequelize
 
-module.exports = { dbReader , dbWriter }
+module.exports = { dbReader, dbWriter }
