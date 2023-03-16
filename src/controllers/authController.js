@@ -117,6 +117,31 @@ class AuthController {
         }
     }
 
+    // contact us...
+    contactUs = async (req, res) => {
+        try {
+
+            let { email, name, subject, message } = req.body
+            let user_id = req.user_id ?? 0
+            var unixTimestamp = Math.floor(new Date().getTime() / 1000);
+            let created_datetime = JSON.stringify(unixTimestamp),
+                updated_datetime = JSON.stringify(unixTimestamp);
+            
+            let data = await dbWriter.contactUs.create({
+                contact_us_id: uuidv4(), user_id,
+                email, name, subject, message, created_datetime, updated_datetime
+            })
+
+            res.send({
+                status_code: 200,
+                message: "Thank you",
+                data: data ?? {}
+            });
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    }
+
 }
 
 module.exports = AuthController;

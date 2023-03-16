@@ -14,4 +14,10 @@ exports.jois = {
         email:Joi.string().email().required(),
         password:Joi.string().required(),
     }),
+    contactUsPayload: Joi.object().keys({
+        email:Joi.string().email().required(),
+        name: Joi.string().optional().allow(null, ""),
+        subject: Joi.string().required(),
+        message:Joi.string().required(),
+    }),
 }

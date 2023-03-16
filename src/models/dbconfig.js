@@ -51,6 +51,7 @@ DbInstance.forEach(element => {
     // Model Map    
     element.name['users'] = require(path.join(__dirname, './usersModel'))(element.name['sequelize'], Sequelize);
     element.name['userBookingTable'] = require(path.join(__dirname, './userBookingTableModel'))(element.name['sequelize'], Sequelize);
+    element.name['contactUs'] = require(path.join(__dirname, './contactUsModel'))(element.name['sequelize'], Sequelize);
 
     // Model Association
     Object.keys(element.name).forEach(function (modelName) {

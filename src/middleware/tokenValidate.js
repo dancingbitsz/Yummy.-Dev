@@ -15,7 +15,8 @@ module.exports = async function tokenValidate(req, res, next) {
                     var user = await dbReader.users.findOne({
                         where: { access_token : access_token.toString() },
                     });
-                    if(user){
+                    if (user) {
+                        req.user_id = decoded.user_id
                         next();
                     } else {
                         ApiError.handle(new AuthFailureError("Your session is expired. Please login into system again."), res);
