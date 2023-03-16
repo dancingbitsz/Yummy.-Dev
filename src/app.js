@@ -4,143 +4,126 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
-const ApiError_1 = require("./core/ApiError");
-const authRoute = require("./routes/auth/authRoute");
-const indexRoute = require('./routes/index');
+
+// ? Routes...
+const indexRoute = require('./routes/index')
+const AuthRoute = require('./routes/Auth/authRoute')
+
 class App {
-  /**
-   * Constructor.
-   *
-   * @class Server
-   * @constructor
-   */
+
   constructor() {
-      this.router = express.Router();
+    this.router = express.Router()
 
-      //create express js application
-      this.app = express();
-      console.log(`Worker ${process.pid} started`);
+    // craete express js application
+    this.app = express()
+    console.log(`Worker ${process.pid} started`)
 
-      //configure application
-      this.config();
+    // configure application
+    this.config()
 
-      //add routes For Web APP
-      this.web();
+    // add router for Web APP
+    this.web()
 
-      //add api For Rest API
-      this.api();
+    // add api for Rest API
+    this.api()
 
-      // Error handling
-      this.ErrorHandling();
+    // Error Handling...
+    // this.ErrorHandling()
 
-      // this.swagger();
+    // this.swagger();
 
-      //use router middleware
-      // this.app.use(this.router);
   }
-  /**
-   * Bootstrap the application.
-   *Server
-   * @static
-   * @return {ng.auto.IInjectorService} Returns the newly created injector for this app.
-   */
-   static bootstrap() {
-    return new App();
-}
 
-  /**
-   * Create REST API routes
-   *
-   * @class Server
-   * @method api
-   */
+  // boottsrap the application
+  static bootstrap() {
+    return new App()
+  }
+
   api() {
-      new authRoute(this.router);
-      new indexRoute(this.router);
-     
-      //use router middleware
-      this.app.use('/api', this.router);
+    // ? setup APIs...
+    new indexRoute(this.router)
+    new AuthRoute(this.router)
+
+    // use router as middleware
+    this.app.use('/api', this.router)
   }
 
-//   swagger() {
-//     new swaggerRoute_1.SwaggerRoute(this.router);
-//     //use router middleware
-//     this.app.use('/', this.router);
-// }
-  
-  /**
-   * Configure application
-   *
-   * @class Server
-   * @method config
-   */
+  // swagger
+
+  // Configure application
   config() {
+    this.app.use('/public', express.static('public'))
 
-    this.app.use('/public',express.static('public'))
+    // add static paths
+    this.app.use(express.static(path.join(__dirname, 'public')))
 
-      //add static paths
-      this.app.use(express.static(path.join(__dirname, "public")));
+    // configure ejs
+    this.app.set('views', path.join(__dirname, 'views'))
+    this.app.set('view engine', 'ejs')
 
-      //configure pug
-      this.app.set("views", path.join(__dirname, "views"));
-      this.app.set("view engine", "ejs");
+    this.app.use(express.json())
+    this.app.use(express.urlencoded({ extended: false }))
 
-      //mount json form parser    
-      // this.app.use(bodyParser.json({ limit: '50mb' }));
+    this.app.use(async function (req, res, next) {
+      res.header("Access-Control-Allow-Origin", "*")
+      res.setHeader("Access-Control-Allow-Methods", "Access-Control-Allow-Headers, crossdomain, withcredentials, Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Origin, TokenType")
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE")
+      next()
+    })
 
-      // this.app.use(compression());
+    this.app.use(cors({ origin: process.env.CORS_URL, optionsSuccessStatus: 200 }))
+    // mount cookie parser middleware
+    this.app.use(cookieParser("SECRET_GOES_HERE"))
+    this.app.use(express.static(path.join(__dirname, 'public')))
 
-      //mount query string parser
-      // this.app.use(bodyParser.urlencoded({
-      //     extended: true
-      // }));
+  }
 
-      this.app.use(express.json());
-      this.app.use(express.urlencoded({ extended: false }));
+  // ErrorHandling() {
+  //   this.app.use((req, res, next) => { next() })
+  // }
 
-      this.app.use(async function (req, res, next) {
-
-          res.header("Access-Control-Allow-Origin", "*");
-          res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, crossdomain, withcredentials, Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Origin, TokenType");
-          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-          next();
-      });
-      this.app.use(cors({ origin: process.env.CORS_URL, optionsSuccessStatus: 200 }));
-      //mount cookie parser middleware
-      this.app.use(cookieParser("SECRET_GOES_HERE"));
-      this.app.use(express.static(path.join(__dirname, 'public')));     
-  } 
-
-  ErrorHandling() {
-    //error handling
-    this.app.use((req, res, next) => next(new ApiError_1.NotFoundError()));
-    // catch 404 and forward to error handler
-    this.app.use((err, req, res, next) => {
-        if (err instanceof ApiError_1.ApiError) {
-            ApiError_1.ApiError.handle(err, res);
-        }
-        else {
-            if (process.env.NODE_ENV === 'development') {
-                // Logger_1.default.error(err);
-                return res.status(500).send(err.message);
-            }
-            ApiError_1.ApiError.handle(new ApiError_1.InternalError(), res);
-        }
-    });
-}
-
-  /**
-   * Create and return Router.
-   *
-   * @class Server
-   * @method web
-   * @return void
-   */
   web() {
-
-      //IndexRoute 
-      this.app.use('/', this.router);
+    this.app.use('/', this.router)
   }
 }
 
-exports.App = App;
+exports.App = App
+
+
+// var indexRouter = require('./routes/index');
+// var usersRouter = require('./routes/users');
+
+// var app = express();
+
+// // view engine setup
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'ejs');
+
+// app.use(logger('dev'));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: false }));
+// app.use(cookieParser());
+// app.use(express.static(path.join(__dirname, 'public')));
+
+// app.use('/', indexRouter);
+// app.use('/users', usersRouter);
+
+// // catch 404 and forward to error handler
+// app.use(function(req, res, next) {
+//   next(createError(404));
+// });             
+
+
+
+// // error handler
+// app.use(function(err, req, res, next) {
+//   // set locals, only providing error in development
+//   res.locals.message = err.message;
+//   res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+//   // render the error page
+//   res.status(err.status || 500);
+//   res.render('error');
+// });
+
+// module.exports = app;
