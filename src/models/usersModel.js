@@ -24,9 +24,13 @@ module.exports = function (sequelize, DataTypes) {
       underscored: true
     }
   );
-  // ym_users.associate = function (models) {
-
-  // }
+  
+  ym_users.associate = function (models) {
+    ym_users.hasMany(models.userBookingTable, {
+      foreignKey: 'user_id',
+      targetKey: 'user_id'
+  });
+  }
 
   return ym_users;
 };

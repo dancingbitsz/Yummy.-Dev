@@ -28,5 +28,7 @@ module.exports = function (sequelize, DataTypes) {
     }
   );
 
+  
+
   return ym_user_booking_table;
 };

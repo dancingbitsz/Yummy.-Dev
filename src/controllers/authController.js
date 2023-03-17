@@ -95,13 +95,29 @@ class AuthController {
                 }
             })
             let data
-
             if (getUsers) {
                 getUsers = JSON.parse(JSON.stringify(getUsers))
                 // ? check password...
                 let match = await bcrypt.compare(password, getUsers.password)
                 if (match) {
-                    data = getUsers
+                    let tokenData = { email, user_id: getUsers.user_id }
+                    let access_token = jwt.sign(tokenData, SECRET_KEY);
+                    await dbWriter.users.update({
+                        access_token: access_token,
+                        updated_datetime: moment().unix()
+                    }, {
+                        where: {
+                            email: email
+                        }
+                    })
+                    data = await dbReader.users.findOne({
+                        attributes: { exclude: ['password', 'is_deleted', 'created_datetime', 'updated_datetime'] },
+                        where: {
+                            email, is_deleted: 0
+                        }
+                    })
+                    // data = updateUser
+                    data = JSON.parse(JSON.stringify(data))
                 } else {
                     throw new Error("Invalid email")
                 }
@@ -110,7 +126,24 @@ class AuthController {
             res.send({
                 status_code: 200,
                 message: "login successfully",
-                data: getUsers ?? {}
+                data: data ?? {}
+            });
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    }
+
+    // log out...
+    logOut = async (req, res) => {
+        try {
+            let user_id = req.user_id ?? 0
+            await dbWriter.users.update({
+                access_token: ""
+            }, { where: { user_id } })
+
+            res.send({
+                status_code: 200,
+                message: "Log out",
             });
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
@@ -126,7 +159,7 @@ class AuthController {
             var unixTimestamp = Math.floor(new Date().getTime() / 1000);
             let created_datetime = JSON.stringify(unixTimestamp),
                 updated_datetime = JSON.stringify(unixTimestamp);
-            
+
             let data = await dbWriter.contactUs.create({
                 contact_us_id: uuidv4(), user_id,
                 email, name, subject, message, created_datetime, updated_datetime
@@ -139,6 +172,35 @@ class AuthController {
             });
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
+        }
+    }
+
+    // User Profile...
+    getMyProfile = async (req, res) => {
+        try {
+            console.log(req.user_id);
+            let profileData = await dbReader.users.findOne({
+                attributes: { exclude: ['password', 'access_token', 'is_deleted', 'created_datetime', 'updated_datetime'] },
+                include: [{
+                    model: dbReader.userBookingTable,
+                    attributes: ['book_table_id', 'name', 'email', 'phone', 'booking_date', 'booking_time', 'people', 'message'],
+                    where: {
+                        is_deleted: 0
+                    }
+                }],
+                where: {
+                    user_id: req.user_id,
+                    is_deleted: 0
+                }
+            })
+            profileData = JSON.parse(JSON.stringify(profileData))
+            res.send({
+                status_code: 200,
+                message: "user fetched successfully",
+                data: profileData ?? {}
+            });
+        } catch (error) {
+            ApiError.handle(new BadRequestError(error.message), res);
         }
     }
 
